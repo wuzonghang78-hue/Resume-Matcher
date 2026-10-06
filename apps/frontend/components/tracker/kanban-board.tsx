@@ -36,6 +36,7 @@ import { planMove } from './reorder';
 import { ManageColumnsDialog } from './manage-columns-dialog';
 import {
   readHiddenStatuses,
+  TRACKER_HIDDEN_STATUSES_KEY,
   toggleHiddenStatus,
   writeHiddenStatuses,
 } from '@/lib/utils/tracker-column-visibility';
@@ -64,6 +65,17 @@ export function KanbanBoard() {
   const [hiddenStatuses, setHiddenStatuses] = useState<Set<ApplicationStatus>>(() =>
     readHiddenStatuses()
   );
+
+  useEffect(() => {
+    const syncHiddenStatuses = (event: StorageEvent) => {
+      if (event.key === TRACKER_HIDDEN_STATUSES_KEY || event.key === null) {
+        setHiddenStatuses(readHiddenStatuses());
+      }
+    };
+
+    window.addEventListener('storage', syncHiddenStatuses);
+    return () => window.removeEventListener('storage', syncHiddenStatuses);
+  }, []);
 
   // Persist on an actual change only — an effect keyed on the state would also
   // write the just-read value straight back on mount.

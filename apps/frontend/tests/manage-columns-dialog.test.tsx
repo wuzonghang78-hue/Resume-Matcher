@@ -218,6 +218,29 @@ describe('KanbanBoard column visibility', () => {
     expect(visibleColumns()).toContain('applied');
   });
 
+  it('syncs visibility changes made in another browser tab', async () => {
+    await renderBoard();
+
+    localStorage.setItem(TRACKER_HIDDEN_STATUSES_KEY, JSON.stringify(['interview']));
+    act(() => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: TRACKER_HIDDEN_STATUSES_KEY,
+          newValue: JSON.stringify(['interview']),
+        })
+      );
+    });
+
+    expect(visibleColumns()).not.toContain('interview');
+
+    localStorage.clear();
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: null }));
+    });
+
+    expect(visibleColumns()).toContain('interview');
+  });
+
   it('refuses to hide the last visible stage even when the dialog is bypassed', async () => {
     const stored = JSON.stringify(ALL_BUT_SAVED);
     localStorage.setItem(TRACKER_HIDDEN_STATUSES_KEY, stored);
